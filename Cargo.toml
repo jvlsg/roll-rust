@@ -1,5 +1,5 @@
 [package]
-name = "roll-rust"
+name = "roll"
 version = "0.1.0"
 authors = ["joaog"]
 edition = "2018"

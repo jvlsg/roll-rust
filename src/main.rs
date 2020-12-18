@@ -1,7 +1,10 @@
-use clap::{Arg,App};
+use clap::{App, Arg};
 
 fn main() {
-    let opts = App::new("roll")
+    let matches = App::new(clap::crate_name!())
+        .version(clap::crate_version!())
+        .author(clap::crate_authors!())
+        // .about(clap::crate_description!()) //TODO
         .arg(
             Arg::new("dice_pool")
                 .short('p')
@@ -11,7 +14,7 @@ fn main() {
 "Dice Pool mode: Each die of a roll is independent of the others")
         )
         .arg(
-            Arg::new("default_target")
+            Arg::new("default_tn")
                 .short('t')
                 .long("target")
                 .takes_value(true)
@@ -35,13 +38,22 @@ Z is a Target Number. A roll will be successful if Result >= TN
 Please note that roll fails quietly - Incorrect input will simply be ignored"
             )
         )
-        .arg(Arg::new("v")
+        .arg(Arg::new("verbose")
             .short('v')
-            .multiple(true)
-            .about("Sets the level of verbosity")
+            .about("Verbose mode")
         )
-
         .get_matches();
+    
+    let roll_strs : Vec<&str> = matches.values_of("ROLL").unwrap().collect();
+    for r in roll_strs {
+        if let Err(e) = roll::run(
+            r,
+            matches.value_of("default_tn").unwrap_or("0").parse().unwrap(),
+            matches.is_present("dice_pool"),
+            matches.is_present("verbose"),
+        ){
+            println!("Failed for {} - {:?}",r,e);
+        }
 
-    println!("{:#?}",opts);
+    }
 }

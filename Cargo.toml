@@ -1,8 +1,10 @@
 [package]
 name = "roll"
-version = "0.1.0"
-authors = ["joaog"]
+version = "1.0.0"
+authors = ["João Victor Guimarães <jvlsg-github@ipriva.org>"]
 edition = "2018"
+license = "MIT"
+description = "A simple terminal-based dice roller for RPG and CLI enthusiasts"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

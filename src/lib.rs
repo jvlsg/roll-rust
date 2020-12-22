@@ -112,7 +112,9 @@ impl str::FromStr for DiceRoll {
     fn from_str(s: &str) -> Result<Self,Self::Err> {
         let re = Regex::new(r"^(?P<dice_qty>\d+)[d|D](?P<dice_type>\d+)(?P<mods>(?:\+\d+|-\d+)+)?(?:#(?P<tn>\d+))?$").unwrap();
 
-        let caps  = re.captures(s).ok_or::<DiceRollError>(DiceRollError{message:"Regex Fail".to_string()})?;
+        let caps  = re.captures(s).ok_or::<DiceRollError>(DiceRollError{
+            message:"Regex Error - your roll must follow the following pattern XdY[+A-B][#Z]\nRun roll --help to learn more".to_string()
+        })?;
 
         let dice_qty= match caps.name("dice_qty").unwrap().as_str().parse::<isize>() {
             Ok(i) => i,
@@ -154,7 +156,7 @@ impl fmt::Display for DiceRoll {
                 let base_result:isize = self.roll_results.iter().sum();
                 let mod_str = if self.inc > 0 || self.dec < 0 {format!(" ➔ {}",self.final_result)} else {"".to_string()};
                 if self.tn > 0 {
-                   let success_str = if self.final_result > self.tn {" ✓ "} else {" ✕ "};
+                   let success_str = if self.final_result > self.tn {" ✔ "} else {" ✗ "};
                     write!(f,"[{}{}{}]",base_result,mod_str,success_str)
                 }
                 else{
@@ -193,7 +195,14 @@ impl fmt::Debug for DiceRoll {
         .field("Type", &self.roll_type)
         .field("Results", &self.roll_results)
         .field("Final Result", &self.final_result)
+        .field("Bottomline", &self.to_string())
         .finish()
+    }
+}
+
+impl fmt::Display for DiceRollError {
+    fn fmt(&self,f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,"{}",&self.message)
     }
 }
 

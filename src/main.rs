@@ -30,29 +30,34 @@ target number declaration in a roll overrides the default Target Number")
             .multiple(true)
             .about("XdY[+A-B#Z]")
             .long_about(
-"A dice roll formated as XdY[+A-B#Z]
+"XdY[+A-B#Z] is the roll format, where:
 X is Number of dice to roll
 Y is the type of die
-A and B are optional increments and decrements, respectively 
-Z is a Target Number. A roll will be successful if Result >= TN
-Please note that roll fails quietly - Incorrect input will simply be ignored"
+A and B are optional increments and decrements, respectively. 
+Z is a Target Number. A roll will be successful if Result >= TN"
             )
         )
         .arg(Arg::new("verbose")
             .short('v')
             .about("Verbose mode")
         )
+        .after_help(
+"EXAMPLES:
+    roll 2d20+12-3+1-1-2+4#10
+    roll -p 3d6#10
+"
+        )
         .get_matches();
-    
+    let is_verbose = matches.is_present("verbose");
     let roll_strs : Vec<&str> = matches.values_of("ROLL").unwrap().collect();
     for r in roll_strs {
         if let Err(e) = roll::run(
             r,
             matches.value_of("default_tn").unwrap_or("0").parse().unwrap(),
             matches.is_present("dice_pool"),
-            matches.is_present("verbose"),
+            is_verbose,
         ){
-            println!("Failed for {} - {:?}",r,e);
+            if is_verbose { eprintln!("[!] {} Failed\n{}\n",r,e) };
         }
 
     }

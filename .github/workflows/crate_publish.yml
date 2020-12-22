@@ -18,5 +18,7 @@ jobs:
       run: cargo build --release --all-features --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Login to Crates
+      run: cargo login ${{secrets.CRATESIO_API_KEY}}
     - name: Publish Version
-      run: cargo publish ${{secrets.CRATESIO_API_KEY}}
+      run: cargo publish

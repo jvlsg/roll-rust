@@ -7,6 +7,9 @@ by João Victor Guimarães
 Run 
 `cargo install roll`
 
+### Releases
+See the releases tab in Github
+
 ## USAGE
 `roll [options] XdY[+A-B][#Z] ...`
 Where:

@@ -19,4 +19,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
     - name: Publish Version
-      run: cargo publish {{secrets.CRATESIO_API_KEY}}
+      run: cargo publish ${{secrets.CRATESIO_API_KEY}}

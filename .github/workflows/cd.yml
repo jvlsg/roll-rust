@@ -21,7 +21,7 @@ jobs:
 
 
   gh_release:
-    needs: crate_publish
+    #needs: crate_publish
     strategy:
       matrix:
         job:

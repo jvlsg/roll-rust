@@ -4,18 +4,52 @@ on:
   release:
     types: [created]
 
+  workflow_dispatch:
+
 jobs:
   release:
-    name: release ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    
     strategy:
       matrix:
-        target: [x86_64-pc-windows-gnu, x86_64-unknown-linux-gnu, x86_64-apple-darwin]
+        target: [x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu,x86_64-apple-darwin]
+    
+    runs-on: ubuntu-latest
+    
+    name: release ${{ matrix.target }}
+
     steps:
       - uses: actions/checkout@v2
-      - name: Compile and release
-        uses: Douile/rust-build.action@v0.1.7
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true      
+      
+      - uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+            args: --target ${{matrix.target}} --release
+      
+      - name: Package # This would actually build your project, using zip for an example artifact
+        run: |
+        $RELEASE_NAME=roll-${{matrix.target}}
+        zip --junk-paths $RELEASE_NAME target/${{matrix.target}}/roll README.md
+          
+        ########## create sha256 ##########
+        if [[ {{ "${{ runner.os " }}}} == 'Windows' ]]; then
+          certutil -hashfile $RELEASE_NAME.zip sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
+        else
+          shasum -a 256 $RELEASE_NAME.zip > $RELEASE_NAME.sha256
+        fi
+        
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        # if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+          $RELEASE_NAME.zip
+          $RELEASE_NAME.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.md LICENSE"
+            

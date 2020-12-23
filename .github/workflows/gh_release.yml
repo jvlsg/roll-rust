@@ -29,27 +29,27 @@ jobs:
         with:
           use-cross: true
           command: build
-            args: --target ${{matrix.target}} --release
+          args: --target ${{matrix.target}} --release
       
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
-        $RELEASE_NAME=roll-${{matrix.target}}
-        zip --junk-paths $RELEASE_NAME target/${{matrix.target}}/roll README.md
-          
-        ########## create sha256 ##########
-        if [[ {{ "${{ runner.os " }}}} == 'Windows' ]]; then
-          certutil -hashfile $RELEASE_NAME.zip sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
-        else
-          shasum -a 256 $RELEASE_NAME.zip > $RELEASE_NAME.sha256
-        fi
+          $RELEASE_NAME=roll-${{matrix.target}}
+          zip --junk-paths $RELEASE_NAME target/${{matrix.target}}/roll README.md
+
+          ########## create sha256 ##########
+          if [[ {{ "${{ runner.os " }}}} == 'Windows' ]]; then
+            certutil -hashfile $RELEASE_NAME.zip sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
+          else
+            shasum -a 256 $RELEASE_NAME.zip > $RELEASE_NAME.sha256
+          fi
         
       - name: Release
         uses: softprops/action-gh-release@v1
         # if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-          $RELEASE_NAME.zip
-          $RELEASE_NAME.sha256
+            $RELEASE_NAME.zip
+            $RELEASE_NAME.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             

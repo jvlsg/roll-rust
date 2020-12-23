@@ -16,8 +16,6 @@ jobs:
           - { os: macos-latest,   target: x86_64-apple-darwin,         use-cross: false }
           - { os: windows-latest, target: x86_64-pc-windows-msvc,      use-cross: false }
           - { os: ubuntu-latest , target: x86_64-unknown-linux-gnu,    use-cross: false }
-          - { os: ubuntu-latest,  target: x86_64-unknown-linux-musl,   use-cross: true }
-          - { os: ubuntu-latest,  target: arm-unknown-linux-gnueabihf, use-cross: true }
     
     runs-on: ${{ matrix.job.os }}
     
@@ -39,7 +37,7 @@ jobs:
       
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
-          $RELEASE_NAME=roll-${{matrix.job.target}}
+          RELEASE_NAME=roll-${{matrix.job.target}}
           zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/roll README.md
         
       - name: Release

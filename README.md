@@ -11,16 +11,16 @@ Run
 See the releases tab in Github
 
 ## USAGE
-`roll [options] XdY[+A-B][#Z] ...`
+`roll [options] XdY[+i-d...][#target] ...`
 Where:
 
 `X` is number of dice
 
 `Y` is the type of die
 
-`A` and `B` are optional increments and decrements, respectively. You cand **add several** increments and decrements
+`i` and `d` are optional increments and decrements, respectively. You can **use several** increments and decrements
 
-`Z` is a Target Number. A roll will be successful if Result >= TN
+`target` is a Target Number. A roll will be successful if Result >= TN
 It is possible to make several rolls and use several modifiers to each roll.
 
 Please note that roll **fails quietly** - Incorrect input will simply be ignored, unless you are using verbose mode. 
@@ -51,13 +51,13 @@ rolls X dYs as a dice pool, gives individual results for each die
     [4,2,2]
     [58]
     
-### `roll xdy+a-b`    
+### `roll xdy+i-d`    
 rolls X dYs sums their results, and modifies final sum with modifiers    
     
     $: roll 2d20+12-3+1-1-2+4#10
     [8 ➔ 19 ✓ ]
 
-For dicepools: rolls X+a-b dYs.
+For dicepools: rolls X+i-d dYs.
 
     $: roll -p 3d6+2-3
     [2,2]
@@ -65,7 +65,7 @@ For dicepools: rolls X+a-b dYs.
     $: roll -p 1d6-12
     []
     
-### `roll xdy#z`   
+### `roll xdy#target`   
 rolls X dYs, returning success (✓) if results are Greater or Equal than a Target Number, else it returns a failure (✕)
     
     $: roll 2d10#15 3d4#3 1d123#1409
@@ -80,8 +80,8 @@ For dicepools, each die that is greater or equal than the Target Number is consi
     $: roll -p 3d6+2-3#2000
     [1,5| 0 Successes]
 
-### `roll xdy -t z`   
-Sets a default target number of Z. 
+### `roll xdy -t target`   
+Sets a default target number 
     
     $: roll -t 5 -p 3d6 2d6#1
     [3,2,2| 0 Successes]

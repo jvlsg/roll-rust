@@ -1,0 +1,63 @@
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+
+jobs:
+
+  crate_publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --release --all-features --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Login to Crates
+      run: cargo login ${{secrets.CRATESIO_API_KEY}}
+    - name: Publish Version
+      run: cargo publish
+
+
+  gh_release:
+    needs: crate_publish
+    strategy:
+      matrix:
+        job:
+          - { os: macos-latest,   target: x86_64-apple-darwin,         use-cross: false }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc,      use-cross: false }
+          - { os: ubuntu-latest , target: x86_64-unknown-linux-gnu,    use-cross: false }
+    
+    runs-on: ${{ matrix.job.os }}
+    
+    name: release ${{ matrix.job.target }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true      
+      
+      - name: Building to release
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.job.use-cross }}
+          command: build
+          args: --target ${{matrix.job.target}} --release --all-features --verbose
+      
+      - name: Package # This would actually build your project, using zip for an example artifact
+        run: |
+          RELEASE_NAME=roll-${GITHUB_REF/refs\/tags\//}-${{matrix.job.target}}
+          zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/roll README.md
+        
+      - name: GH Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            $RELEASE_NAME.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            

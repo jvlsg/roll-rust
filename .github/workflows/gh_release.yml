@@ -8,15 +8,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
-    
+  
+  release:  
     strategy:
       matrix:
-        target: [x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu,x86_64-apple-darwin]
+        job:
+          - { os: macos-latest,   target: x86_64-apple-darwin,         use-cross: false }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc,      use-cross: false }
+          - { os: ubuntu-latest , target: x86_64-unknown-linux-gnu,    use-cross: false }
+          - { os: ubuntu-latest,  target: x86_64-unknown-linux-musl,   use-cross: true }
+          - { os: ubuntu-latest,  target: arm-unknown-linux-gnueabihf, use-cross: true }
     
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.job.os }}
     
-    name: release ${{ matrix.target }}
+    name: release ${{ matrix.job.target }}
 
     steps:
       - uses: actions/checkout@v2
@@ -28,17 +33,14 @@ jobs:
       
       - uses: actions-rs/cargo@v1
         with:
-          use-cross: true
+          use-cross: ${{ matrix.job.use-cross }}
           command: build
-          args: --target ${{matrix.target}} --release
+          args: --target ${{matrix.job.target}} --release
       
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
-          $RELEASE_NAME=roll-${{matrix.target}}
-          zip --junk-paths $RELEASE_NAME target/${{matrix.target}}/roll README.md
-
-          ########## create sha256 ##########
-          shasum -a 256 $RELEASE_NAME.zip > $RELEASE_NAME.sha256
+          $RELEASE_NAME=roll-${{matrix.job.target}}
+          zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/roll README.md
         
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -46,7 +48,6 @@ jobs:
         with:
           files: |
             $RELEASE_NAME.zip
-            $RELEASE_NAME.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             

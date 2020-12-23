@@ -1,15 +1,27 @@
-# .github/workflows/release.yml
-
 on:
-  release:
-    types: [created]
   push:
-    branches: [ devel ]
-  workflow_dispatch:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  
-  release:  
+
+  crate_publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --release --all-features --verbose
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Login to Crates
+      run: cargo login ${{secrets.CRATESIO_API_KEY}}
+    - name: Publish Version
+      run: cargo publish
+
+
+  gh_release:
+    needs: crate_publish
     strategy:
       matrix:
         job:
@@ -29,20 +41,20 @@ jobs:
           toolchain: stable
           override: true      
       
-      - uses: actions-rs/cargo@v1
+      - name: Building to release
+        uses: actions-rs/cargo@v1
         with:
           use-cross: ${{ matrix.job.use-cross }}
           command: build
-          args: --target ${{matrix.job.target}} --release
+          args: --target ${{matrix.job.target}} --release --all-features --verbose
       
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
-          RELEASE_NAME=roll-${{matrix.job.target}}
+          RELEASE_NAME=roll-${GITHUB_REF/refs\/tags\//}-${{matrix.job.target}}
           zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/roll README.md
         
-      - name: Release
+      - name: GH Release
         uses: softprops/action-gh-release@v1
-        # if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             $RELEASE_NAME.zip

@@ -3,8 +3,9 @@ use std::str;
 use std::fmt;
 use regex::Regex;
 #[derive(Debug)]
-pub struct DiceRollError{
-    message: String,
+pub enum DiceRollError{
+    RollSyntax(String),
+    Undefined(String)
 }
 
 #[derive(Debug)]
@@ -13,14 +14,22 @@ pub enum DiceRollType{
     Pool
 }
 pub struct DiceRoll{
+    /// Dice Quantity
     dice_qty: isize,
+    /// Dice Type
     dice_type: isize,
-    inc: isize, //Increment
-    dec: isize, //Decrement
-    tn: isize,   //Target Number. Defaults to 0
+    /// Increment
+    inc: isize, 
+    ///Decrement
+    dec: isize, 
+    ///Target Number. Defaults to 0
+    tn: isize,
+    /// Type of roll - influences roll_dice() and final_result 
     roll_type: DiceRollType,
+    /// Results for each die
     roll_results: Vec<isize>,
-    final_result: isize //
+    ///Final result - Sum of roll results or number of successes in dicepool
+    final_result: isize
 }
 
 pub fn run(roll_str: &str, default_tn: isize , is_pool: bool, is_verbose: bool) -> Result<(),DiceRollError> {
@@ -112,19 +121,13 @@ impl str::FromStr for DiceRoll {
     fn from_str(s: &str) -> Result<Self,Self::Err> {
         let re = Regex::new(r"^(?P<dice_qty>\d+)[d|D](?P<dice_type>\d+)(?P<mods>(?:\+\d+|-\d+)+)?(?:#(?P<tn>\d+))?$").unwrap();
 
-        let caps  = re.captures(s).ok_or::<DiceRollError>(DiceRollError{
-            message:"Regex Error - your roll must follow the following pattern XdY[+A-B][#Z]\nRun roll --help to learn more".to_string()
-        })?;
-
-        let dice_qty= match caps.name("dice_qty").unwrap().as_str().parse::<isize>() {
-            Ok(i) => i,
-            Err(e) =>  return Err(DiceRollError{message:e.to_string()})
-        };
-        let dice_type= match caps.name("dice_type").unwrap().as_str().parse::<isize>() {
-            Ok(i) => i,
-            Err(e) =>  return Err(DiceRollError{message:e.to_string()})
-        };
-
+        let caps  = re.captures(s).ok_or::<DiceRollError>(DiceRollError::RollSyntax(s.to_string()))?;
+        
+        //Both dice_qty, tn and dice_type can use unwrap()
+        //the Regex will catch any non-numeric character
+        let dice_qty = caps.name("dice_qty").unwrap().as_str().parse::<isize>().unwrap();
+        let dice_type = caps.name("dice_type").unwrap().as_str().parse::<isize>().unwrap();
+        
         let tn = match caps.name("tn") {
             Some(m) => m.as_str().parse::<isize>().unwrap_or_default(),
             None => 0
@@ -202,7 +205,14 @@ impl fmt::Debug for DiceRoll {
 
 impl fmt::Display for DiceRollError {
     fn fmt(&self,f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,"{}",&self.message)
+        match self{
+            DiceRollError::RollSyntax(m) => {
+                write!(f,"Syntax Error on {}: your roll must follow the following pattern: XdY[+i-d][#target]\nRun roll --help to learn more",m)
+            }
+            DiceRollError::Undefined(m) => {
+                write!(f,"Undefined Error: {}",m)
+            }
+        }
     }
 }
 
@@ -235,16 +245,21 @@ mod tests {
         assert_eq!(x.final_result,1)
     }
 
-
     #[test]
-    fn roll_from_str(){
-        let x = "3D6-3-3+1#5".parse::<DiceRoll>();
-        println!("{:?}",x.unwrap());
+    fn valid_roll_from_str(){
         let x = "2d20+12-3+1-1-2+4#10".parse::<DiceRoll>();
-        println!("{:?}",x.unwrap());
-        let x = "15d16".parse::<DiceRoll>();
-        println!("{:?}",x.unwrap());
-        let x = "1d3#2".parse::<DiceRoll>();
+        assert_eq!(true,x.is_ok());
         println!("{:?}",x.unwrap());
     }
+    
+    #[test]
+    fn invalid_roll_from_str(){
+        let x = "2d20+0.4".parse::<DiceRoll>();
+        assert_eq!(true,x.is_err());
+        println!("{}",x.err().unwrap());
+
+        let x = "Ad10-4".parse::<DiceRoll>();
+        assert_eq!(true,x.is_err());
+        println!("{}",x.err().unwrap());
+    }    
 }

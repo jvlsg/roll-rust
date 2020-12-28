@@ -55,7 +55,7 @@ jobs:
         run: |
           Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath ${{env.RELEASE_NAME}}.
       - name: Bash Package
-        if: startsWith(matrix.os,'windows')!
+        if: !startsWith(matrix.os,'windows')
         run: |
           zip --junk-paths ${{env.RELEASE_NAME}} target/${{matrix.job.target}}/release/roll README.md
           

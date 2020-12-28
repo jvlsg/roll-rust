@@ -1,6 +1,6 @@
 [package]
 name = "roll"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["João Victor Guimarães <jvlsg-github@ipriva.org>"]
 edition = "2018"
 license = "MIT"

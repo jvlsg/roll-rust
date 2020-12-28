@@ -5,7 +5,7 @@ fn build_app<'a>() -> clap::App<'a> {
     App::new(clap::crate_name!())
     .version(clap::crate_version!())
     .author(clap::crate_authors!())
-    // .about(clap::crate_description!()) //TODO
+    .about(clap::crate_description!())
     .arg(
         Arg::new("dice_pool")
             .short('p')
@@ -55,11 +55,9 @@ roll 1d20
 
 fn main() {
     let mut return_code = 0;
-
     let matches = build_app().get_matches();
     let is_verbose = matches.is_present("verbose");
     let roll_strs : Vec<&str> = matches.values_of("ROLL").unwrap().collect();
-    
     let default_tn = match matches.value_of("default_tn").unwrap_or("0").parse::<isize>() {
         Err(_e) => {
             return_code = 1;

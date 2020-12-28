@@ -51,19 +51,19 @@ jobs:
           args: --target ${{matrix.job.target}} --release --all-features --verbose
       
       - name: PS Package
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: startsWith(matrix.os,'windows')
         run: |
-          Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath $RELEASE_NAME.
+          Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath ${{env.RELEASE_NAME}}.
       - name: Bash Package
-        if: ${{ matrix.os != 'windows-latest'}}
+        if: startsWith(matrix.os,'windows')!
         run: |
-          zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/release/roll README.md
+          zip --junk-paths ${{env.RELEASE_NAME}} target/${{matrix.job.target}}/release/roll README.md
           
       - name: GH Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            $RELEASE_NAME.zip
+            ${{env.RELEASE_NAME}}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             

@@ -55,7 +55,7 @@ jobs:
             !target/${{matrix.job.target}}/release/roll.d  
   release:
     env:
-      RELEASE_PREFIX: roll-${{ github.ref }}-
+      RELEASE_PREFIX: roll-${GITHUB_REF/refs\/tags\//}-
       MAC: x86_64-apple-darwin
       WIN: x86_64-pc-windows-msvc
       LINUX: x86_64-unknown-linux-gnu

@@ -18,9 +18,10 @@ jobs:
       run: cargo login ${{secrets.CRATESIO_API_KEY}}
     - name: Publish Version
       run: cargo publish
+      continue-on-error: true
 
 
-  gh_release:
+  build_binaries:
     strategy:
       matrix:
         job:
@@ -29,11 +30,7 @@ jobs:
           - { os: ubuntu-latest , target: x86_64-unknown-linux-gnu,    use-cross: false }
     
     runs-on: ${{ matrix.job.os }}
-    
-    name: release ${{ matrix.job.target }}
-
-    env:
-      RELEASE_NAME: roll-${{matrix.job.target}}
+    name: Build ${{ matrix.job.target }}
 
     steps:
       - uses: actions/checkout@v2
@@ -48,20 +45,42 @@ jobs:
         with:
           use-cross: ${{ matrix.job.use-cross }}
           command: build
-          args: --target ${{matrix.job.target}} --release --all-features --verbose
-      
-      - name: PS Package
-        if: startsWith(matrix.os,'windows')
-        run: |
-          Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath ${{env.RELEASE_NAME}}.
-      - name: Bash Package
-        if: ${{startsWith(matrix.os,'ubuntu') || startsWith(matrix.os,'macos')}}
-        run: |
-          zip --junk-paths ${{env.RELEASE_NAME}} target/${{matrix.job.target}}/release/roll README.md
-      
+          args: --target ${{matrix.job.target}} --release --all-features --verbose 
+      - name: Uploading artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: roll-${{matrix.job.target}}
+          path: |
+            target/${{matrix.job.target}}/release/roll*
+            !target/${{matrix.job.target}}/release/roll.d  
+  release:
+    env:
+      RELEASE_NAME: roll-${{matrix.target}}
+
+    strategy:
+      matrix:
+        targets: [x86_64-apple-darwin,x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu]
+
+    needs: build_binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download artifacts to CWD
+        uses: actions/download-artifact@v2
+
+      - name: Package Binaries
+        run: zip --junk-paths ${{env.RELEASE_NAME}} ./roll-${{matrix.target}}/* README.md
+      # - name: PS Package
+      #   if: startsWith(matrix.os,'windows')
+      #   run: |
+      #     Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath ${{env.RELEASE_NAME}}.
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

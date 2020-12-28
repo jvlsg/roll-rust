@@ -50,11 +50,12 @@ jobs:
           command: build
           args: --target ${{matrix.job.target}} --release --all-features --verbose
       
-      - name: Package # This would actually build your project, using zip for an example artifact
-      - if: ${{ matrix.os == 'windows-latest' }}
+      - name: PS Package
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath $RELEASE_NAME.zip
-      - if: ${{ matrix.os != 'windows-latest'}}
+          Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath $RELEASE_NAME.
+      - name: Bash Package
+        if: ${{ matrix.os != 'windows-latest'}}
         run: |
           zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/release/roll README.md
           

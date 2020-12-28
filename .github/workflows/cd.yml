@@ -51,7 +51,7 @@ jobs:
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
           RELEASE_NAME=roll-${GITHUB_REF/refs\/tags\//}-${{matrix.job.target}}
-          zip --junk-paths $RELEASE_NAME target/release/roll README.md
+          zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/release/roll README.md
         
       - name: GH Release
         uses: softprops/action-gh-release@v1

@@ -159,7 +159,7 @@ impl fmt::Display for DiceRoll {
                 let base_result:isize = self.roll_results.iter().sum();
                 let mod_str = if self.inc > 0 || self.dec < 0 {format!(" ➔ {}",self.final_result)} else {"".to_string()};
                 if self.tn > 0 {
-                   let success_str = if self.final_result > self.tn {" ✔ "} else {" ✗ "};
+                   let success_str = if self.final_result >= self.tn {" ✔ "} else {" ✗ "};
                     write!(f,"[{}{}{}]",base_result,mod_str,success_str)
                 }
                 else{

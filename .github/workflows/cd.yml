@@ -33,6 +33,9 @@ jobs:
     
     name: release ${{ matrix.job.target }}
 
+    env:
+      RELEASE_NAME: roll-${{matrix.job.target}}
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
@@ -50,9 +53,8 @@ jobs:
       
       - name: Package # This would actually build your project, using zip for an example artifact
         run: |
-          RELEASE_NAME=roll-${{matrix.job.target}}
           zip --junk-paths $RELEASE_NAME target/${{matrix.job.target}}/release/roll README.md
-        
+
       - name: GH Release
         uses: softprops/action-gh-release@v1
         with:

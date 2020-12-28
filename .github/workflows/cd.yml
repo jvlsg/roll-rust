@@ -55,12 +55,10 @@ jobs:
             !target/${{matrix.job.target}}/release/roll.d  
   release:
     env:
-      RELEASE_NAME: roll-${{matrix.target}}
-
-    strategy:
-      matrix:
-        targets: [x86_64-apple-darwin,x86_64-pc-windows-msvc,x86_64-unknown-linux-gnu]
-
+      RELEASE_PREFIX: roll-${{ github.ref }}-
+      MAC: x86_64-apple-darwin
+      WIN: x86_64-pc-windows-msvc
+      LINUX: x86_64-unknown-linux-gnu
     needs: build_binaries
     runs-on: ubuntu-latest
 
@@ -70,17 +68,18 @@ jobs:
       - name: Download artifacts to CWD
         uses: actions/download-artifact@v2
 
-      - name: Package Binaries
-        run: zip --junk-paths ${{env.RELEASE_NAME}} ./roll-${{matrix.target}}/* README.md
-      # - name: PS Package
-      #   if: startsWith(matrix.os,'windows')
-      #   run: |
-      #     Compress-Archive -Path README -Path target\${{matrix.job.target}}\release\roll.exe -DestinationPath ${{env.RELEASE_NAME}}.
+      - name: Package Mac Binaries
+        run: zip --junk-paths ${{env.RELEASE_PREFIX}}${{env.MAC}} ./roll-${{env.MAC}}/* README.md
+
+      - name: Package Windows Binaries
+        run: zip --junk-paths ${{env.RELEASE_PREFIX}}${{env.WIN}} ./roll-${{env.WIN}}/* README.md
+
+      - name: Package Linux Binaries
+        run: zip --junk-paths ${{env.RELEASE_PREFIX}}${{env.LINUX}} ./roll-${{env.LINUX}}/* README.md
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -89,13 +88,36 @@ jobs:
           draft: false
           prerelease: false
       
-      - name: Upload Release Asset
-        id: upload-release-asset 
+      - name: Upload Mac Release 
+        id: upload-release-asset-mac
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./${{env.RELEASE_NAME}}.zip
-          asset_name: ${{env.RELEASE_NAME}}.zip
+          asset_path: ./${{env.RELEASE_PREFIX}}${{env.MAC}}.zip
+          asset_name: ${{env.RELEASE_PREFIX}}${{env.MAC}}.zip
           asset_content_type: application/zip
+
+      - name: Upload Win Release 
+        id: upload-release-asset-win
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./${{env.RELEASE_PREFIX}}${{env.WIN}}.zip
+          asset_name: ${{env.RELEASE_PREFIX}}${{env.WIN}}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Linux Release 
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./${{env.RELEASE_PREFIX}}${{env.LINUX}}.zip
+          asset_name: ${{env.RELEASE_PREFIX}}${{env.LINUX}}.zip
+          asset_content_type: application/zip
+

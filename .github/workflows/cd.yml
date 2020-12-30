@@ -9,15 +9,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --release --all-features --verbose
-    - name: Run tests
-      run: cargo test --verbose
     - name: Login to Crates
       run: cargo login ${{secrets.CRATESIO_API_KEY}}
+    - name: Build
+      run: cargo build
+    - name: Run tests
+      run: cargo test --verbose
     - name: Publish Version
       run: cargo publish
-      continue-on-error: true
 
 
   build_binaries:

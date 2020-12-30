@@ -98,11 +98,7 @@ Dice Roll {
     Decrement: 0,
     Target number: 4,
     Type: Pool,
-    Results: [
-        4,
-        6,
-        3,
-    ],
+    Results: [4, 6, 3],
     Final Result: 2,
     Bottomline: "[4,6,3| 2 Successes]",
 }

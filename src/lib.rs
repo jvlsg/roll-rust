@@ -193,7 +193,7 @@ impl fmt::Debug for DiceRoll {
         .field("Decrement", &self.dec)
         .field("Target number", &self.tn)
         .field("Type", &self.roll_type)
-        .field("Results", &self.roll_results)
+        .field("Results", &format_args!("{:?}",self.roll_results))
         .field("Final Result", &self.final_result)
         .field("Bottomline", &self.to_string())
         .finish()

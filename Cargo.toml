@@ -5,7 +5,7 @@ authors = ["João Victor Guimarães <jvlsg-github@ipriva.org>"]
 edition = "2018"
 license = "MIT"
 description = "A simple terminal-based dice roller for RPG and CLI enthusiasts"
-
+repository = "https://github.com/jvlsg/roll-rust/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

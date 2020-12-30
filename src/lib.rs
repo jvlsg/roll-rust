@@ -41,26 +41,23 @@ pub fn run(roll_str: &str, default_tn: isize , is_pool: bool, is_verbose: bool) 
     Ok(())
 }
 
+///Recieves a string of numbers divided by '+' and '-'
 fn parse_modifiers(mods_str: String) -> (isize,isize) {
     let mut inc = 0;
     let mut dec = 0;
     let mut aux_str = "".to_string();
-
-    let char_vec: Vec<char> = mods_str.chars().collect();
-    let mut i = 0;
-    for j in 0..char_vec.len() {
-        if char_vec[j] == '+' || char_vec[j] == '-' || j==char_vec.len()-1 {
-            if j==char_vec.len()-1 {
-                aux_str.push(char_vec[j]);
-            }
-            if i<j{
+    let mut mod_iter = mods_str.chars(); 
+    loop {
+        let c = mod_iter.next().unwrap_or('\r');
+        if c == '+' || c == '-' || c == '\r' {
+            if !aux_str.is_empty() {
                 let aux_int = aux_str.parse::<isize>().unwrap_or_default();
                 if aux_int > 0 {inc += aux_int} else {dec += aux_int};
-                i=j;
                 aux_str.clear();
             }
+            if c == '\r' {break};
         }
-        aux_str.push(char_vec[j]);
+        aux_str.push(c);        
     }
     (inc,dec)
 }
@@ -249,7 +246,13 @@ mod tests {
     fn valid_roll_from_str(){
         let x = "2d20+12-3+1-1-2+4#10".parse::<DiceRoll>();
         assert_eq!(true,x.is_ok());
-        println!("{:?}",x.unwrap());
+        let d = x.unwrap();
+        assert_eq!(d.dice_qty,2);
+        assert_eq!(d.dice_type,20);
+        assert_eq!(d.inc,17);
+        assert_eq!(d.dec,-6);
+        assert_eq!(d.tn,10);
+        println!("{:?}",d);
     }
     
     #[test]

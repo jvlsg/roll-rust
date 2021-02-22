@@ -116,13 +116,16 @@ impl DiceRoll {
 impl str::FromStr for DiceRoll {
     type Err = DiceRollError;
     fn from_str(s: &str) -> Result<Self,Self::Err> {
-        let re = Regex::new(r"^(?P<dice_qty>\d+)[d|D](?P<dice_type>\d+)(?P<mods>(?:\+\d+|-\d+)+)?(?:#(?P<tn>\d+))?$").unwrap();
+        let re = Regex::new(r"^(?P<dice_qty>\d+)?[d|D](?P<dice_type>\d+)(?P<mods>(?:\+\d+|-\d+)+)?(?:#(?P<tn>\d+))?$").unwrap();
 
         let caps  = re.captures(s).ok_or::<DiceRollError>(DiceRollError::RollSyntax(s.to_string()))?;
         
-        //Both dice_qty, tn and dice_type can use unwrap()
+        //dice_qty, tn and dice_type can use unwrap()
         //the Regex will catch any non-numeric character
-        let dice_qty = caps.name("dice_qty").unwrap().as_str().parse::<isize>().unwrap();
+        let dice_qty = match caps.name("dice_qty") {
+            Some(cap) => cap.as_str().parse::<isize>().unwrap(),
+            None => 1,
+        };
         let dice_type = caps.name("dice_type").unwrap().as_str().parse::<isize>().unwrap();
         
         let tn = match caps.name("tn") {
@@ -253,6 +256,17 @@ mod tests {
         assert_eq!(d.dec,-6);
         assert_eq!(d.tn,10);
         println!("{:?}",d);
+    }
+
+    #[test]
+    fn valid_roll_without_qty() {
+        let roll = "d8+5".parse::<DiceRoll>()
+            .expect("dice roll failed to parse");
+        assert_eq!(roll.dice_qty, 1);
+        assert_eq!(roll.dice_type, 8);
+        assert_eq!(roll.inc, 5);
+        assert_eq!(roll.dec, 0);
+        assert_eq!(roll.tn, 0);
     }
     
     #[test]
